@@ -12,9 +12,9 @@ This project is a Work in Progress but features:
 
 ## The story
 
-    I gound myself in possesion of one of the Lego artic train sets, which is among one of the most fun recent kits. kit: https://www.lego.com/en-us/product/explorers-arctic-polar-express-train-60470?ef_id=Cj0KCQiA1czLBhDhARIsAIEc7uguyI1XteHayy08KlyCDtzCPm_7fJdRzck9Qq0AXHX6i1mzMNYerd0aAoGUEALw_wcB:G:s&s_kwcid=AL!790!3!753174751885!e!!g!!lego%20arctic%20polar%20express%20train!20573417184!180355510712&cmp=KAC-INI-GOOGUS-GO-US_GL-EN-RE-PS-BUY-EXPLORE-CITY_OTHERS-SHOP-BP-MM-ALL-CIDNA00000-NOVELTIES-CITY_OTHERS&gad_source=1&gad_campaignid=20573417184&gbraid=0AAAAADESMXIBHkpe-ZVZ_urViNnalKMUD&gclid=Cj0KCQiA1czLBhDhARIsAIEc7uguyI1XteHayy08KlyCDtzCPm_7fJdRzck9Qq0AXHX6i1mzMNYerd0aAoGUEALw_wcB
+I recently found myself in possesion of one of the Lego artic train sets, which is among one of the most fun recent kits. [kit link #60470](https://www.lego.com/en-us/product/explorers-arctic-polar-express-train-60470)
 
-on the back of the artic train is a camera tripod for spotting wildlife, specifically the artic foxes that are included in the kit. 
+On the back of the artic train is a camera tripod for spotting wildlife, specifically the artic foxes that are included in the kit. 
 
 I have recently been doing much ecology and as an embedded systems engineer, I thought it would be fun to imrpvoe the set by adding a real camera to the kit.
 
