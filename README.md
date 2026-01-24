@@ -10,6 +10,9 @@ This project is a Work in Progress but features:
 - Software on thr microcontroller in C to send commands to the teain via bluetooth, receive user commands from a webpage or app, and stream video to the web pagebor app. 
 - Fun
 
+<img width="702" height="480" alt="image" src="https://github.com/user-attachments/assets/07354c23-f4ae-48b2-bfe2-49732976fbae" />
+
+
 ## The story
 
 I recently found myself in possesion of one of the Lego artic train sets, which is among one of the most fun recent kits. [kit link #60470](https://www.lego.com/en-us/product/explorers-arctic-polar-express-train-60470). On the back of the artic train is a camera tripod for spotting wildlife, specifically the artic foxes that are included in the kit.
