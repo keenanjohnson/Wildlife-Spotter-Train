@@ -1,13 +1,15 @@
 # Wildlife Spotter Train
 
-Explore the wilderness via Train! BLE-controlled LEGO City train using an ESP32S3 microcontroller. Features real-time video streaming and playful interaction design. Currently in active development.
+[![Build ESP-IDF Project](https://github.com/keenanjohnson/Wildlife-Spotter-Train/actions/workflows/build-esp-idf.yml/badge.svg)](https://github.com/keenanjohnson/Wildlife-Spotter-Train/actions/workflows/build-esp-idf.yml)
+
+Explore the wilderness via Train! BLE-controlled LEGO City train using an ESP32-S3 microcontroller. Features real-time video streaming and playful interaction design. Currently in active development.
 
 This project is a Work in Progress but features:
 
-- A small camera module attached to an esp32-s3 microcontroller
-- A 3d printed enclosure with ingrated stand and antennae placement as well as lego xonpatible mounts 
-- Micropython software running on the train to receive drive conmands via bluetooth 
-- Software on thr microcontroller in C to send commands to the teain via bluetooth, receive user commands from a webpage or app, and stream video to the web pagebor app. 
+- A small camera module attached to an ESP32-S3 microcontroller
+- A 3D printed enclosure with integrated stand and antenna placement as well as LEGO compatible mounts
+- Pybricks firmware running on the train to receive drive commands via Bluetooth
+- ESP-IDF firmware on the camera module to stream video over UDP and send commands to the train via Bluetooth
 - Fun
 
 <img width="702" height="480" alt="image" src="https://github.com/user-attachments/assets/07354c23-f4ae-48b2-bfe2-49732976fbae" />
@@ -21,4 +23,38 @@ I recently found myself in possesion of one of the Lego artic train sets, which 
 
 I have recently been doing much ecology and as an embedded systems engineer, I thought it would be fun to improve the set by adding a real camera to the kit.
 
-Additionaly, I had seen the excelent pybricks project and realized that I could also via Bluetooth control make a device and software gui that would not only stream video but also control the driving of the train. 
+Additionally, I had seen the excellent [Pybricks](https://pybricks.com/) project and realized that I could also make a device via Bluetooth control and software GUI that would not only stream video but also control the driving of the train.
+
+## Project Structure
+
+| Directory | Description |
+|-----------|-------------|
+| [camera/src/](camera/src/) | ESP-IDF firmware for the ESP32-S3 camera module. Streams JPEG frames over UDP via WiFi. |
+| [camera/cad/](camera/cad/) | 3D printable enclosure designs for the camera module. |
+| [train/](train/) | Pybricks Python code that runs on the LEGO City hub to control the train motors. |
+| [desktop/](desktop/) | Python test application for receiving and displaying UDP video frames. |
+
+## Building
+
+### Camera Firmware (ESP-IDF)
+
+The camera firmware requires [ESP-IDF v5.5.2](https://docs.espressif.com/projects/esp-idf/en/v5.5.2/esp32s3/get-started/index.html). See [camera/src/README.md](camera/src/README.md) for detailed build and flash instructions.
+
+```bash
+cd camera/src
+source ~/.espressif/v5.5.2/esp-idf/export.sh
+idf.py set-target esp32s3
+idf.py menuconfig  # Configure WiFi credentials
+idf.py build
+idf.py -p /dev/cu.usbmodem* flash monitor
+```
+
+### Train Controller (Pybricks)
+
+The train runs [Pybricks firmware](https://pybricks.com/). See [train/README.md](train/README.md) for setup.
+
+```bash
+pip install pybricksdev
+pybricksdev run ble my_program.py
+```
+
