@@ -2,8 +2,8 @@
 
 #include <nvs_flash.h>
 
-#define ESP_WIFI_SSID "Bill Wi the Science Fi"
-#define ESP_WIFI_PASS "ToeBeans"
+#define ESP_WIFI_SSID CONFIG_ESP_WIFI_SSID
+#define ESP_WIFI_PASS CONFIG_ESP_WIFI_PASSWORD
 
 static esp_netif_t *s_sta_netif = NULL;
 
