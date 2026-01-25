@@ -1,16 +1,19 @@
 
-
-### Flashing Commands
-
-In the terminal where you are going to use ESP-IDF, run:
+## Commands to build
 
 ```
-~/esp/esp-idf/install.sh esp32s3
-. ~/esp/esp-idf/export.sh"
-idf.py fullclean
-idf.py update-dependencies
-rm -f sdkconfig sdkconfig.old
-git submodule update --init --recursive --remote
+source ~/.espressif/v5.5.2/esp-idf/export.sh
 idf.py set-target esp32s3
 
 ```
+
+## Commands to flash
+
+```
+
+```
+
+
+## Credits
+
+The initial esp-idf structure was heavily inspired by the work here: https://github.com/wrsturgeon/esp32s3-video-stream/tree/main
