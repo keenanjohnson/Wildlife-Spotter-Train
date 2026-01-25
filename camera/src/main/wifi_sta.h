@@ -84,7 +84,7 @@ static void wifi_start(void) {
 
     esp_netif_inherent_config_t esp_netif_config = ESP_NETIF_INHERENT_DEFAULT_WIFI_STA();
     // Warning: the interface desc is used in tests to capture actual connection details (IP, gw, mask)
-    esp_netif_config.if_desc = "spectral_netif_sta";
+    esp_netif_config.if_desc = "netif_sta";
     esp_netif_config.route_prio = 128;
     s_sta_netif = esp_netif_create_wifi(WIFI_IF_STA, &esp_netif_config);
     esp_wifi_set_default_wifi_sta_handlers();
@@ -112,33 +112,6 @@ static void wifi_init_sta(void) {
 
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-    /*
-    esp_netif_create_default_wifi_sta();
-
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-
-    // Connect to an existing network instead of setting up an access point:
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-
-    // Disable power-saving mode:
-    ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_NONE));
-
-    {
-        wifi_config_t sta_config = {
-            .sta = {
-                .ssid = ESP_WIFI_SSID,
-                .password = ESP_WIFI_PASS,
-            },
-        };
-        ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &sta_config));
-    }
-
-    ESP_ERROR_CHECK(esp_wifi_start());
-
-    ESP_ERROR_CHECK(esp_wifi_connect());
-    */
 
     wifi_start();
 

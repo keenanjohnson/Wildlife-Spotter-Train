@@ -8,8 +8,8 @@
 #include <lwip/sys.h>
 #include <lwip/netdb.h>
 
-#define SPECTRAL_ADDR "192.168.1.248"
-#define SPECTRAL_PORT 5005 // 12345
+#define SERVER_ADDR "192.168.1.248"
+#define SERVER_PORT 5005 // 12345
 #define CHUNK_SIZE 1400
 
 typedef uint16_t frame_id_t; // TODO: u8 & wrap i.e. let overflow
@@ -20,34 +20,34 @@ typedef struct __attribute__((packed)) {
     uint16_t total_packets;  // Total number of chunks
 } jpeg_chunk_header_t;
 
-static int spectral_sock = -1;
-static struct sockaddr_in spectral_addr;
+static int udp_sock = -1;
+static struct sockaddr_in server_addr;
 
 static void udp_init() {
-    while ((spectral_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0) {
-        ESP_LOGE("SPECTRAL-UDP", "Failed to create socket: %s", strerror(errno));
+    while ((udp_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP)) < 0) {
+        ESP_LOGE("UDP", "Failed to create socket: %s", strerror(errno));
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
     {
         int enable_broadcast = 1;
-        setsockopt(spectral_sock, SOL_SOCKET, SO_BROADCAST, &enable_broadcast, sizeof(enable_broadcast));
+        setsockopt(udp_sock, SOL_SOCKET, SO_BROADCAST, &enable_broadcast, sizeof(enable_broadcast));
     }
 
     // fcntl(udp_broadcast_sock, F_SETFL, O_NONBLOCK); // Non-blocking socket
 
-    memset(&spectral_addr, 0, sizeof(spectral_addr));
-    spectral_addr.sin_family = AF_INET;
-    spectral_addr.sin_port = htons(SPECTRAL_PORT);
-    spectral_addr.sin_addr.s_addr = inet_addr(SPECTRAL_ADDR);  // AP mode broadcast address
-    printf("UDP broadcast socket initialized on port %d\n", SPECTRAL_PORT);
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(SERVER_PORT);
+    server_addr.sin_addr.s_addr = inet_addr(SERVER_ADDR);  // AP mode broadcast address
+    printf("UDP broadcast socket initialized on port %d\n", SERVER_PORT);
 }
 
 static int send_chunked_jpeg(camera_fb_t const *const fb) {
     static jpeg_chunk_header_t header = { .frame_id = 0 };
 
     header.total_packets = (fb->len + CHUNK_SIZE - 1) / CHUNK_SIZE;
-    ESP_LOGD("SPECTRAL-UDP", "Sending frame ID #%i (a %i-byte JPEG) in %i %i-byte chunks", header.frame_id + 1, fb->len, header.total_packets, CHUNK_SIZE);
+    ESP_LOGD("UDP", "Sending frame ID #%i (a %i-byte JPEG) in %i %i-byte chunks", header.frame_id + 1, fb->len, header.total_packets, CHUNK_SIZE);
     if (header.total_packets == 0) {
         return 0;
     }
@@ -56,7 +56,7 @@ static int send_chunked_jpeg(camera_fb_t const *const fb) {
     size_t offset = 0;
     header.packet_id = 0;
     do {
-        ESP_LOGD("SPECTRAL-UDP", "Sending chunk #%i/%i", header.packet_id + 1, header.total_packets);
+        ESP_LOGD("UDP", "Sending chunk #%i/%i", header.packet_id + 1, header.total_packets);
 
         size_t chunk_size = fb->len - offset;
         if (chunk_size > CHUNK_SIZE) { chunk_size = CHUNK_SIZE; }
@@ -67,8 +67,8 @@ static int send_chunked_jpeg(camera_fb_t const *const fb) {
         };
 
         struct msghdr const msg = {
-            .msg_name = &spectral_addr,
-            .msg_namelen = sizeof(spectral_addr),
+            .msg_name = &server_addr,
+            .msg_namelen = sizeof(server_addr),
             .msg_iov = iov,
             .msg_iovlen = 2,
             .msg_control = NULL,
@@ -76,13 +76,13 @@ static int send_chunked_jpeg(camera_fb_t const *const fb) {
             .msg_flags = 0
         };
 
-        if (sendmsg(spectral_sock, &msg, 0) < 0) {
+        if (sendmsg(udp_sock, &msg, 0) < 0) {
             if (errno == 12) {
                 err_code = -1;
             } else {
                 // Otherwise, UDP is inherently lossy, so
                 // don't return an error (which would decrease the frame rate):
-                ESP_LOGW("SPECTRAL-UDP", "sendmsg failed on chunk %u/%u with errno %i: %s", header.packet_id + 1, header.total_packets, errno, strerror(errno));
+                ESP_LOGW("UDP", "sendmsg failed on chunk %u/%u with errno %i: %s", header.packet_id + 1, header.total_packets, errno, strerror(errno));
             }
             break; // Drop the rest of this frame
         }
