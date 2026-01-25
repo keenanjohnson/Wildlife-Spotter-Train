@@ -2,10 +2,8 @@
 
 #include <nvs_flash.h>
 
-#define ESP_WIFI_SSID "Bill Wi the Science Fi" // "NETGEAR09-5G"
+#define ESP_WIFI_SSID "Bill Wi the Science Fi"
 #define ESP_WIFI_PASS "ToeBeans"
-// #define DEST_IP   "192.168.1.123"  // Jetson Nano IP
-// #define DEST_PORT 5005
 
 static esp_netif_t *s_sta_netif = NULL;
 
@@ -14,7 +12,7 @@ static void wifi_sta_disconnect(void);
 
 static void handler_on_wifi_connect(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data) {
-    ESP_LOGI("SPECTRAL-WIFI-STA", "WiFi connected!");
+    ESP_LOGI("WIFI-STA", "WiFi connected!");
 }
 
 static void handler_on_wifi_disconnect(void *arg, esp_event_base_t event_base,
@@ -23,14 +21,14 @@ static void handler_on_wifi_disconnect(void *arg, esp_event_base_t event_base,
 
     wifi_event_sta_disconnected_t *disconn = event_data;
     if (disconn->reason == WIFI_REASON_ROAMING) {
-        ESP_LOGI("SPECTRAL-WIFI-STA", "station roaming, do nothing");
+        ESP_LOGI("WIFI-STA", "station roaming, do nothing");
         return;
     }
 
-    ESP_LOGI("SPECTRAL-WIFI-STA", "Wi-Fi disconnected (%d). Trying to reconnect...", disconn->reason);
+    ESP_LOGI("WIFI-STA", "Wi-Fi disconnected (%d). Trying to reconnect...", disconn->reason);
     esp_err_t err = esp_wifi_connect();
     if (err == ESP_ERR_WIFI_NOT_STARTED) {
-        ESP_LOGI("SPECTRAL-WIFI-STA", "INTERNAL ERROR: WiFi has not been started.");
+        ESP_LOGI("WIFI-STA", "INTERNAL ERROR: WiFi has not been started.");
         return;
     }
     ESP_ERROR_CHECK(err);
@@ -38,10 +36,10 @@ static void handler_on_wifi_disconnect(void *arg, esp_event_base_t event_base,
 
 static void handler_on_sta_got_ip(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data) {
-    ESP_LOGI("SPECTRAL-WIFI-STA", "WiFi station got an IP!");
+    ESP_LOGI("WIFI-STA", "WiFi station got an IP!");
 
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
-    ESP_LOGI("SPECTRAL-WIFI-STA", "WiFi station IP: " IPSTR, IP2STR(&event->ip_info.ip));
+    ESP_LOGI("WIFI-STA", "WiFi station IP: " IPSTR, IP2STR(&event->ip_info.ip));
 }
 
 static void wifi_sta_disconnect(void) {
@@ -67,17 +65,17 @@ static void wifi_sta_connect(void) {
         },
     };
 
-    ESP_LOGI("SPECTRAL-WIFI-STA", "Connecting to `%s`...", wifi_config.sta.ssid);
+    ESP_LOGI("WIFI-STA", "Connecting to `%s`...", wifi_config.sta.ssid);
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     do {
         esp_err_t ret = esp_wifi_connect();
         if (ret == ESP_OK) {
             break;
         } else {
-            ESP_LOGE("SPECTRAL-WIFI-STA", "WiFi connect failed! ret:%x", ret);
+            ESP_LOGE("WIFI-STA", "WiFi connect failed! ret:%x", ret);
         }
     } while (1);
-    ESP_LOGI("SPECTRAL-WIFI-STA", "Waiting for IP(s)");
+    ESP_LOGI("WIFI-STA", "Waiting for IP(s)");
 }
 
 static void wifi_start(void) {

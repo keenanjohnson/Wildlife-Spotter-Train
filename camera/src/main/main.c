@@ -25,18 +25,13 @@
 #include <esp_mac.h>
 #include <esp_wifi.h>
 
-#include "spectral_camera.h"
-#include "spectral_udp.h"
-// #include "spectral_wifi_ap.h"
-#include "spectral_wifi_sta.h"
+#include "camera.h"
+#include "udp.h"
+#include "wifi_sta.h"
 
-static char const *const TAG = "SPECTRAL-MAIN";
+static char const *const TAG = "CAMERA-MAIN";
 
 void app_main(void) {
-    /*
-    // Initialize WiFi access point:
-    wifi_init_softap();
-    */
 
     // Initialize WiFi station:
     wifi_init_sta();
