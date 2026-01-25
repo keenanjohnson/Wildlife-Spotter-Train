@@ -19,3 +19,6 @@ dependencies.lock
 
 # EIM 
 eim)_config.toml
+
+# Installed ESP-IDF Components
+managed_components/
