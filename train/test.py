@@ -2,19 +2,34 @@ from pybricks.hubs import CityHub
 from pybricks.parameters import Color, Port
 from pybricks.tools import wait
 from pybricks.pupdevices import DCMotor
+from usys import stdin
+from uselect import poll
 
-# Initialize the hub
+# Initialize the hub and motor
 hub = CityHub()
-
-# Initialize the motor.
 train_motor = DCMotor(Port.A)
 
-# Keep blinking Blue
-hub.light.blink(Color.GREEN, [500, 500])
+# Set up stdin polling for non-blocking reads
+keyboard = poll()
+keyboard.register(stdin)
 
-# Choose the "power" level for your train. Negative means reverse.
-train_motor.dc(30)
+# Signal ready
+hub.light.on(Color.GREEN)
+print("RDY")
 
-# Keep doing nothing. The train just keeps going.
 while True:
-    wait(1000)
+    # Check for incoming commands (non-blocking)
+    while keyboard.poll(0):
+        cmd = stdin.readline().strip().upper()
+        if cmd == "F":
+            train_motor.dc(30)
+            hub.light.on(Color.GREEN)
+        elif cmd == "B":
+            train_motor.dc(-30)
+            hub.light.on(Color.BLUE)
+        elif cmd == "S":
+            train_motor.dc(0)
+            hub.light.on(Color.YELLOW)
+
+    # Small delay to prevent busy-waiting
+    wait(50)
