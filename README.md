@@ -4,6 +4,10 @@
 
 Explore the wilderness via Train! BLE-controlled LEGO City train using an ESP32-S3 microcontroller. Features real-time video streaming and playful interaction design. Currently in active development.
 
+
+https://github.com/user-attachments/assets/2e25facd-4201-4223-821a-3176ae2201d8
+
+
 This project is a Work in Progress but features:
 
 - A small camera module attached to an ESP32-S3 microcontroller
@@ -15,10 +19,9 @@ This project is a Work in Progress but features:
 <p float="left">
   <img src="pics/train_camera_1.jpeg" width="300" />
   <img src="pics/train_camera_2.jpeg" width="300" />
-  <img src="pics/train_camera_3.jpeg" width="300" />
 </p>
 
-<img height="360" alt="image" src="https://github.com/user-attachments/assets/07354c23-f4ae-48b2-bfe2-49732976fbae" />
+https://github.com/user-attachments/assets/5a5532dc-e645-4069-b709-44a688e2fda8
 
 ## The story
 
