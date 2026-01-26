@@ -1,11 +1,15 @@
 #pragma once
 
 #include <nvs_flash.h>
+#include <freertos/event_groups.h>
 
 #define ESP_WIFI_SSID CONFIG_ESP_WIFI_SSID
 #define ESP_WIFI_PASS CONFIG_ESP_WIFI_PASSWORD
 
+#define WIFI_CONNECTED_BIT BIT0
+
 static esp_netif_t *s_sta_netif = NULL;
+static EventGroupHandle_t s_wifi_event_group = NULL;
 
 // Forward declaration:
 static void wifi_sta_disconnect(void);
@@ -40,6 +44,23 @@ static void handler_on_sta_got_ip(void *arg, esp_event_base_t event_base,
 
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
     ESP_LOGI("WIFI-STA", "WiFi station IP: " IPSTR, IP2STR(&event->ip_info.ip));
+
+    if (s_wifi_event_group) {
+        xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
+    }
+}
+
+// Wait for WiFi to connect and get IP, returns true on success
+static bool wifi_wait_connected(int timeout_ms) {
+    if (!s_wifi_event_group) return false;
+
+    EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
+        WIFI_CONNECTED_BIT,
+        pdFALSE,  // Don't clear on exit
+        pdFALSE,  // Wait for any bit
+        pdMS_TO_TICKS(timeout_ms));
+
+    return (bits & WIFI_CONNECTED_BIT) != 0;
 }
 
 static void wifi_sta_disconnect(void) {
@@ -95,6 +116,9 @@ static void wifi_start(void) {
 }
 
 static void wifi_init_sta(void) {
+    // Create event group for connection signaling
+    s_wifi_event_group = xEventGroupCreate();
+
     // Initialize non-volatile storage to use for WiFi:
     {
         esp_err_t err = nvs_flash_init();

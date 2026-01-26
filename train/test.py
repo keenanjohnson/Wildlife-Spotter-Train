@@ -2,19 +2,49 @@ from pybricks.hubs import CityHub
 from pybricks.parameters import Color, Port
 from pybricks.tools import wait
 from pybricks.pupdevices import DCMotor
+from bleradio import BLERadio
 
-# Initialize the hub
+# Initialize the hub and motor
 hub = CityHub()
-
-# Initialize the motor.
 train_motor = DCMotor(Port.A)
 
-# Keep blinking Blue
-hub.light.blink(Color.GREEN, [500, 500])
+# BLE Radio setup:
+# - Broadcast status on channel 1
+# - Observe commands from ESP32 on channel 2
+radio = BLERadio(broadcast_channel=1, observe_channels=[2])
 
-# Choose the "power" level for your train. Negative means reverse.
-train_motor.dc(30)
+# Signal ready
+hub.light.on(Color.GREEN)
+print("RDY")
 
-# Keep doing nothing. The train just keeps going.
+# Current state
+current_speed = 0
+
 while True:
-    wait(1000)
+    # Check for incoming commands from ESP32
+    data = radio.observe(2)
+
+    if data is not None and len(data) > 0:
+        cmd = data[0] if isinstance(data, (list, tuple)) else data
+
+        if cmd == "F":
+            train_motor.dc(30)
+            hub.light.on(Color.GREEN)
+            current_speed = 30
+            print("FWD")
+        elif cmd == "B":
+            train_motor.dc(-30)
+            hub.light.on(Color.BLUE)
+            current_speed = -30
+            print("BWD")
+        elif cmd == "S":
+            train_motor.dc(0)
+            hub.light.on(Color.YELLOW)
+            current_speed = 0
+            print("STP")
+
+    # Broadcast current status (so ESP32 knows we're alive)
+    radio.broadcast(["OK", current_speed])
+
+    # Small delay
+    wait(100)

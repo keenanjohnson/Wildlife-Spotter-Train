@@ -112,6 +112,49 @@ static esp_err_t capture_handler(httpd_req_t *req) {
     return res;
 }
 
+// Train control endpoint
+static esp_err_t train_handler(httpd_req_t *req) {
+    char action[32] = {0};
+    char json[128];
+
+    // Parse query string for action parameter
+    size_t query_len = httpd_req_get_url_query_len(req);
+    if (query_len > 0) {
+        char query[64];
+        if (httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK) {
+            char param[32];
+            if (httpd_query_key_value(query, "action", param, sizeof(param)) == ESP_OK) {
+                strncpy(action, param, sizeof(action) - 1);
+            }
+        }
+    }
+
+    const char *result = "ok";
+    int rc = 0;
+
+    if (strcmp(action, "forward") == 0) {
+        rc = train_send_command("F");
+        result = rc == 0 ? "forward" : "error";
+    } else if (strcmp(action, "backward") == 0) {
+        rc = train_send_command("B");
+        result = rc == 0 ? "backward" : "error";
+    } else if (strcmp(action, "stop") == 0) {
+        rc = train_send_command("S");
+        result = rc == 0 ? "stopped" : "error";
+    }
+
+    snprintf(json, sizeof(json),
+        "{\"action\":\"%s\",\"result\":\"%s\",\"state\":\"%s\"}",
+        action[0] ? action : "status",
+        result,
+        train_state_str()
+    );
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    return httpd_resp_send(req, json, strlen(json));
+}
+
 // Status endpoint
 static esp_err_t status_handler(httpd_req_t *req) {
     ESP_LOGI(HTTP_TAG, "Status handler called!");
@@ -176,6 +219,14 @@ static void start_http_server(void) {
             .user_ctx = NULL
         };
         httpd_register_uri_handler(api_httpd, &status_uri);
+
+        httpd_uri_t train_uri = {
+            .uri = "/train",
+            .method = HTTP_GET,
+            .handler = train_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(api_httpd, &train_uri);
 
         ESP_LOGI(HTTP_TAG, "API server started");
     } else {
