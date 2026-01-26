@@ -89,6 +89,55 @@ static const char INDEX_HTML[] = R"rawliteral(
             font-size: 0.8rem;
             color: #666;
         }
+        .train-controls {
+            margin-top: 30px;
+            padding: 20px;
+            background: #16213e;
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        .train-controls h2 {
+            font-size: 1.1rem;
+            font-weight: 300;
+            margin-bottom: 15px;
+        }
+        .train-status {
+            padding: 8px 16px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            background: #374151;
+            font-size: 0.85rem;
+        }
+        .train-status.connected { background: #166534; }
+        .train-status.scanning { background: #854d0e; }
+        .train-status.error { background: #991b1b; }
+        .train-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .btn-train {
+            padding: 16px 24px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .btn-forward { background: #22c55e; color: white; }
+        .btn-forward:hover { background: #16a34a; }
+        .btn-forward:active { background: #15803d; transform: scale(0.95); }
+        .btn-stop { background: #ef4444; color: white; }
+        .btn-stop:hover { background: #dc2626; }
+        .btn-stop:active { background: #b91c1c; transform: scale(0.95); }
+        .btn-backward { background: #3b82f6; color: white; }
+        .btn-backward:hover { background: #2563eb; }
+        .btn-backward:active { background: #1d4ed8; transform: scale(0.95); }
     </style>
 </head>
 <body>
@@ -106,6 +155,32 @@ static const char INDEX_HTML[] = R"rawliteral(
     </div>
 
     <div class="stats" id="stats"></div>
+
+    <div class="train-controls">
+        <h2>Train Control</h2>
+        <div id="train-status" class="train-status">Checking connection...</div>
+        <div class="train-buttons">
+            <button class="btn-train btn-backward"
+                    onmousedown="trainControl('backward')"
+                    onmouseup="trainControl('stop')"
+                    onmouseleave="trainControl('stop')"
+                    ontouchstart="trainControl('backward'); event.preventDefault();"
+                    ontouchend="trainControl('stop')">
+                &#9664; Back
+            </button>
+            <button class="btn-train btn-stop" onclick="trainControl('stop')">
+                Stop
+            </button>
+            <button class="btn-train btn-forward"
+                    onmousedown="trainControl('forward')"
+                    onmouseup="trainControl('stop')"
+                    onmouseleave="trainControl('stop')"
+                    ontouchstart="trainControl('forward'); event.preventDefault();"
+                    ontouchend="trainControl('stop')">
+                Fwd &#9654;
+            </button>
+        </div>
+    </div>
 
     <script>
         const streamImg = document.getElementById('stream');
@@ -147,7 +222,65 @@ static const char INDEX_HTML[] = R"rawliteral(
         // Auto-start stream on page load
         window.onload = function() {
             startStream();
+            updateTrainStatus();
         };
+
+        // Train control
+        const trainStatusDiv = document.getElementById('train-status');
+        let lastAction = null;
+
+        async function trainControl(action) {
+            // Debounce repeated stop commands
+            if (action === lastAction) return;
+            lastAction = action;
+
+            try {
+                const response = await fetch('/train?action=' + action);
+                const data = await response.json();
+                updateTrainStatusUI(data.state, data.result);
+            } catch (err) {
+                trainStatusDiv.textContent = 'Connection error';
+                trainStatusDiv.className = 'train-status error';
+            }
+
+            // Reset lastAction for stop to allow repeated stops
+            if (action === 'stop') {
+                setTimeout(() => { lastAction = null; }, 100);
+            }
+        }
+
+        function updateTrainStatusUI(state, result) {
+            let statusText = state;
+            let statusClass = 'train-status';
+
+            if (state === 'ready') {
+                statusText = 'Connected - ' + (result || 'Ready');
+                statusClass += ' connected';
+            } else if (state === 'scanning' || state === 'connecting' || state === 'discovering') {
+                statusText = 'Connecting to train...';
+                statusClass += ' scanning';
+            } else if (state === 'disconnected') {
+                statusText = 'Train disconnected - scanning...';
+                statusClass += ' error';
+            }
+
+            trainStatusDiv.textContent = statusText;
+            trainStatusDiv.className = statusClass;
+        }
+
+        async function updateTrainStatus() {
+            try {
+                const response = await fetch('/train?action=status');
+                const data = await response.json();
+                updateTrainStatusUI(data.state, null);
+            } catch (err) {
+                trainStatusDiv.textContent = 'Connection error';
+                trainStatusDiv.className = 'train-status error';
+            }
+        }
+
+        // Poll train status every 3 seconds
+        setInterval(updateTrainStatus, 3000);
     </script>
 </body>
 </html>
