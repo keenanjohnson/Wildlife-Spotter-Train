@@ -1,8 +1,17 @@
 #pragma once
 
-#define IMAGE_SIZE FRAMESIZE_HD
-#define IMAGE_FORMAT PIXFORMAT_JPEG // PIXFORMAT_GRAYSCALE
-#define JPEG_QUALITY 12 // 24 // 12 // verbatim: 0-63, for OV series camera sensors, lower number means higher quality
+// Available frame sizes (smallest to largest):
+// FRAMESIZE_96X96    (96x96)     FRAMESIZE_QQVGA   (160x120)
+// FRAMESIZE_QCIF     (176x144)   FRAMESIZE_HQVGA   (240x176)
+// FRAMESIZE_240X240  (240x240)   FRAMESIZE_QVGA    (320x240)
+// FRAMESIZE_CIF      (400x296)   FRAMESIZE_HVGA    (480x320)
+// FRAMESIZE_VGA      (640x480)   FRAMESIZE_SVGA    (800x600)
+// FRAMESIZE_XGA      (1024x768)  FRAMESIZE_HD      (1280x720)
+// FRAMESIZE_SXGA     (1280x1024) FRAMESIZE_UXGA    (1600x1200)
+#define IMAGE_SIZE FRAMESIZE_SVGA
+#define IMAGE_FORMAT PIXFORMAT_JPEG 
+// Quality verbatim: 0-63, for OV series camera sensors, lower number means higher quality
+#define JPEG_QUALITY 32
 #define CONTINUOUS_CAPTURE 1
 
 #define CAM_PIN_PWDN     -1
