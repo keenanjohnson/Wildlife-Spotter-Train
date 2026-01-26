@@ -31,6 +31,18 @@ static const char INDEX_HTML[] = R"rawliteral(
             font-weight: 300;
             font-size: 1.5rem;
         }
+        .main-content {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .video-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         .video-container {
             background: #000;
             border-radius: 8px;
@@ -44,7 +56,7 @@ static const char INDEX_HTML[] = R"rawliteral(
             height: auto;
         }
         .status {
-            margin-top: 20px;
+            margin-top: 15px;
             padding: 10px 20px;
             background: #16213e;
             border-radius: 4px;
@@ -58,7 +70,7 @@ static const char INDEX_HTML[] = R"rawliteral(
             color: #f87171;
         }
         .controls {
-            margin-top: 20px;
+            margin-top: 15px;
             display: flex;
             gap: 10px;
         }
@@ -85,18 +97,16 @@ static const char INDEX_HTML[] = R"rawliteral(
             background: #4b5563;
         }
         .stats {
-            margin-top: 20px;
+            margin-top: 10px;
             font-size: 0.8rem;
             color: #666;
         }
         .train-controls {
-            margin-top: 30px;
             padding: 20px;
             background: #16213e;
             border-radius: 8px;
             text-align: center;
-            width: 100%;
-            max-width: 400px;
+            min-width: 180px;
         }
         .train-controls h2 {
             font-size: 1.1rem;
@@ -115,12 +125,12 @@ static const char INDEX_HTML[] = R"rawliteral(
         .train-status.error { background: #991b1b; }
         .train-buttons {
             display: flex;
+            flex-direction: column;
             gap: 10px;
-            justify-content: center;
         }
         .btn-train {
-            padding: 16px 24px;
-            font-size: 1rem;
+            padding: 20px 24px;
+            font-size: 1.1rem;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -138,47 +148,59 @@ static const char INDEX_HTML[] = R"rawliteral(
         .btn-backward { background: #3b82f6; color: white; }
         .btn-backward:hover { background: #2563eb; }
         .btn-backward:active { background: #1d4ed8; transform: scale(0.95); }
+        @media (max-width: 700px) {
+            .main-content {
+                flex-direction: column;
+            }
+            .train-buttons {
+                flex-direction: row;
+            }
+        }
     </style>
 </head>
 <body>
     <h1>Wildlife Spotter Train</h1>
 
-    <div class="video-container">
-        <img id="stream" src="" alt="Camera Stream">
-    </div>
+    <div class="main-content">
+        <div class="video-section">
+            <div class="video-container">
+                <img id="stream" src="" alt="Camera Stream">
+            </div>
 
-    <div id="status" class="status">Connecting...</div>
+            <div id="status" class="status">Connecting...</div>
 
-    <div class="controls">
-        <button class="btn-primary" onclick="startStream()">Start Stream</button>
-        <button class="btn-secondary" onclick="captureImage()">Capture</button>
-    </div>
+            <div class="controls">
+                <button class="btn-primary" onclick="startStream()">Start Stream</button>
+                <button class="btn-secondary" onclick="captureImage()">Capture</button>
+            </div>
 
-    <div class="stats" id="stats"></div>
+            <div class="stats" id="stats"></div>
+        </div>
 
-    <div class="train-controls">
-        <h2>Train Control</h2>
-        <div id="train-status" class="train-status">Checking connection...</div>
-        <div class="train-buttons">
-            <button class="btn-train btn-backward"
-                    onmousedown="trainControl('backward')"
-                    onmouseup="trainControl('stop')"
-                    onmouseleave="trainControl('stop')"
-                    ontouchstart="trainControl('backward'); event.preventDefault();"
-                    ontouchend="trainControl('stop')">
-                &#9664; Back
-            </button>
-            <button class="btn-train btn-stop" onclick="trainControl('stop')">
-                Stop
-            </button>
-            <button class="btn-train btn-forward"
-                    onmousedown="trainControl('forward')"
-                    onmouseup="trainControl('stop')"
-                    onmouseleave="trainControl('stop')"
-                    ontouchstart="trainControl('forward'); event.preventDefault();"
-                    ontouchend="trainControl('stop')">
-                Fwd &#9654;
-            </button>
+        <div class="train-controls">
+            <h2>Train</h2>
+            <div id="train-status" class="train-status">Checking...</div>
+            <div class="train-buttons">
+                <button class="btn-train btn-forward"
+                        onmousedown="trainControl('forward')"
+                        onmouseup="trainControl('stop')"
+                        onmouseleave="trainControl('stop')"
+                        ontouchstart="trainControl('forward'); event.preventDefault();"
+                        ontouchend="trainControl('stop')">
+                    &#9650; Fwd
+                </button>
+                <button class="btn-train btn-stop" onclick="trainControl('stop')">
+                    Stop
+                </button>
+                <button class="btn-train btn-backward"
+                        onmousedown="trainControl('backward')"
+                        onmouseup="trainControl('stop')"
+                        onmouseleave="trainControl('stop')"
+                        ontouchstart="trainControl('backward'); event.preventDefault();"
+                        ontouchend="trainControl('stop')">
+                    &#9660; Back
+                </button>
+            </div>
         </div>
     </div>
 
