@@ -12,8 +12,13 @@ This project is a Work in Progress but features:
 - ESP-IDF firmware on the camera module to stream video over UDP and send commands to the train via Bluetooth
 - Fun
 
-<img width="702" height="480" alt="image" src="https://github.com/user-attachments/assets/07354c23-f4ae-48b2-bfe2-49732976fbae" />
+<p float="left">
+  <img src="pics/train_camera_1.jpeg" width="300" />
+  <img src="pics/train_camera_2.jpeg" width="300" />
+  <img src="pics/train_camera_3.jpeg" width="300" />
+</p>
 
+<img height="360" alt="image" src="https://github.com/user-attachments/assets/07354c23-f4ae-48b2-bfe2-49732976fbae" />
 
 ## The story
 
