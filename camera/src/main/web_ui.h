@@ -101,6 +101,56 @@ static const char INDEX_HTML[] = R"rawliteral(
             font-size: 0.8rem;
             color: #666;
         }
+        .battery-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #16213e;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .battery-icon {
+            width: 32px;
+            height: 16px;
+            border: 2px solid #888;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 8px;
+            background: #888;
+            border-radius: 0 2px 2px 0;
+        }
+        .battery-level {
+            height: 100%;
+            background: #4ade80;
+            border-radius: 1px;
+            transition: width 0.3s, background 0.3s;
+        }
+        .battery-level.low {
+            background: #f87171;
+        }
+        .battery-level.medium {
+            background: #fbbf24;
+        }
+        .battery-text {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        .battery-voltage {
+            font-size: 0.75rem;
+            color: #666;
+        }
         .train-controls {
             padding: 20px;
             background: #16213e;
@@ -160,6 +210,14 @@ static const char INDEX_HTML[] = R"rawliteral(
 </head>
 <body>
     <h1>Wildlife Spotter Train</h1>
+
+    <div class="battery-indicator">
+        <div class="battery-icon">
+            <div id="battery-level" class="battery-level" style="width: 0%"></div>
+        </div>
+        <span id="battery-text" class="battery-text">---%</span>
+        <span id="battery-voltage" class="battery-voltage">(-.--V)</span>
+    </div>
 
     <div class="main-content">
         <div class="video-section">
@@ -241,10 +299,38 @@ static const char INDEX_HTML[] = R"rawliteral(
             statusDiv.className = 'status error';
         };
 
+        // Battery monitoring
+        const batteryLevel = document.getElementById('battery-level');
+        const batteryText = document.getElementById('battery-text');
+        const batteryVoltage = document.getElementById('battery-voltage');
+
+        async function updateBattery() {
+            try {
+                const response = await fetch('/battery');
+                const data = await response.json();
+
+                batteryLevel.style.width = data.percentage + '%';
+                batteryText.textContent = data.percentage + '%';
+                batteryVoltage.textContent = '(' + data.voltage.toFixed(2) + 'V)';
+
+                // Update color based on level
+                batteryLevel.classList.remove('low', 'medium');
+                if (data.percentage <= 20) {
+                    batteryLevel.classList.add('low');
+                } else if (data.percentage <= 50) {
+                    batteryLevel.classList.add('medium');
+                }
+            } catch (err) {
+                batteryText.textContent = 'N/A';
+                batteryVoltage.textContent = '';
+            }
+        }
+
         // Auto-start stream on page load
         window.onload = function() {
             startStream();
             updateTrainStatus();
+            updateBattery();
         };
 
         // Train control
@@ -303,6 +389,9 @@ static const char INDEX_HTML[] = R"rawliteral(
 
         // Poll train status every 3 seconds
         setInterval(updateTrainStatus, 3000);
+
+        // Poll battery every 10 seconds
+        setInterval(updateBattery, 10000);
     </script>
 </body>
 </html>

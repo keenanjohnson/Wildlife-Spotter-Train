@@ -155,6 +155,23 @@ static esp_err_t train_handler(httpd_req_t *req) {
     return httpd_resp_send(req, json, strlen(json));
 }
 
+// Battery endpoint
+static esp_err_t battery_handler(httpd_req_t *req) {
+    float voltage = battery_read_voltage();
+    int percentage = battery_get_percentage();
+    bool low = battery_is_low();
+
+    char json[128];
+    snprintf(json, sizeof(json),
+        "{\"voltage\":%.2f,\"percentage\":%d,\"low\":%s}",
+        voltage, percentage, low ? "true" : "false"
+    );
+
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    return httpd_resp_send(req, json, strlen(json));
+}
+
 // Status endpoint
 static esp_err_t status_handler(httpd_req_t *req) {
     ESP_LOGI(HTTP_TAG, "Status handler called!");
@@ -228,6 +245,14 @@ static void start_http_server(void) {
         };
         httpd_register_uri_handler(api_httpd, &train_uri);
 
+        httpd_uri_t battery_uri = {
+            .uri = "/battery",
+            .method = HTTP_GET,
+            .handler = battery_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(api_httpd, &battery_uri);
+
         ESP_LOGI(HTTP_TAG, "API server started");
     } else {
         ESP_LOGE(HTTP_TAG, "Failed to start API server");
@@ -272,5 +297,6 @@ static void start_http_server(void) {
     ESP_LOGI(HTTP_TAG, "  Web UI:  http://<ip>/");
     ESP_LOGI(HTTP_TAG, "  Capture: http://<ip>/capture");
     ESP_LOGI(HTTP_TAG, "  Status:  http://<ip>/status");
+    ESP_LOGI(HTTP_TAG, "  Battery: http://<ip>/battery");
     ESP_LOGI(HTTP_TAG, "  Stream:  http://<ip>:81/stream");
 }

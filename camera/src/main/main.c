@@ -23,6 +23,7 @@
 #include "mdns_service.h"
 #include "web_ui.h"
 #include "train_ble.h"
+#include "battery.h"
 #include "http_server.h"
 
 static char const *const TAG = "CAMERA-MAIN";
@@ -57,6 +58,10 @@ void app_main(void) {
     train_ble_init();
     ESP_LOGI(TAG, "Train BLE init complete. Free heap: %lu bytes", (unsigned long)esp_get_free_heap_size());
 
+    // Initialize battery monitoring
+    ESP_LOGI(TAG, "Initializing battery monitoring...");
+    battery_init();
+
     // Start mDNS service (allows access via wildlife-train.local)
     ESP_LOGI(TAG, "Starting mDNS service...");
     start_mdns_service();
@@ -73,12 +78,20 @@ void app_main(void) {
 
     ESP_LOGI(TAG, "System ready!");
 
-    // Main loop - just keep the task alive and log memory stats periodically
+    // Main loop - just keep the task alive and log memory/battery stats periodically
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(30000)); // Every 30 seconds
 
-        ESP_LOGI(TAG, "Free heap: %lu bytes, min free: %lu bytes",
+        float bat_voltage = battery_read_voltage();
+        int bat_percent = battery_get_percentage();
+
+        ESP_LOGI(TAG, "Free heap: %lu bytes, min free: %lu bytes, battery: %.2fV (%d%%)",
             (unsigned long)esp_get_free_heap_size(),
-            (unsigned long)esp_get_minimum_free_heap_size());
+            (unsigned long)esp_get_minimum_free_heap_size(),
+            bat_voltage, bat_percent);
+
+        if (battery_is_low()) {
+            ESP_LOGW(TAG, "Battery low! Consider charging.");
+        }
     }
 }
