@@ -20,6 +20,7 @@
 
 #include "camera.h"
 #include "wifi_sta.h"
+#include "mdns_service.h"
 #include "web_ui.h"
 #include "http_server.h"
 
@@ -42,6 +43,10 @@ void app_main(void) {
     // Wait for WiFi to connect before starting camera/server
     ESP_LOGI(TAG, "Waiting for WiFi connection...");
     vTaskDelay(pdMS_TO_TICKS(3000));
+
+    // Start mDNS service (allows access via wildlife-train.local)
+    ESP_LOGI(TAG, "Starting mDNS service...");
+    start_mdns_service();
 
     // Initialize camera:
     ESP_LOGI(TAG, "Initializing camera...");

@@ -44,6 +44,19 @@ The ESP32-S3 has two Xtensa LX7 cores. We split the workload to prevent the MJPE
 
 The MJPEG handler runs an infinite loop sending frames. Without core separation, this would block the single-threaded HTTP server from accepting new connections on other endpoints.
 
+## mDNS / Bonjour
+
+The camera advertises itself via mDNS, so you can access it without knowing the IP address:
+
+| URL | Description |
+|-----|-------------|
+| `http://train.local/` | Web UI |
+| `http://train.local/capture` | Single snapshot |
+| `http://train.local/status` | Camera status JSON |
+| `http://train.local:81/stream` | MJPEG stream |
+
+mDNS works on macOS and Linux out of the box. On Windows, install [Bonjour Print Services](https://support.apple.com/kb/DL999).
+
 ## HTTP Endpoints
 
 The firmware runs two HTTP servers to prevent the streaming handler from blocking other requests:
@@ -59,17 +72,20 @@ The firmware runs two HTTP servers to prevent the streaming handler from blockin
 ### Example Usage
 
 ```bash
-# View web UI
+# View web UI (using mDNS hostname)
+open http://train.local/
+
+# Or using IP address directly
 open http://192.168.1.6/
 
 # Capture single frame
-curl http://192.168.1.6/capture -o snapshot.jpg
+curl http://train.local/capture -o snapshot.jpg
 
 # Get camera status
-curl http://192.168.1.6/status
+curl http://train.local/status
 
 # Direct stream access
-open http://192.168.1.6:81/stream
+open http://train.local:81/stream
 ```
 
 ## Source Files
@@ -79,6 +95,7 @@ open http://192.168.1.6:81/stream
 | `main/main.c` | Entry point, initialization sequence |
 | `main/camera.h` | OV3660 sensor configuration, pin mappings |
 | `main/wifi_sta.h` | WiFi station mode, auto-reconnect logic |
+| `main/mdns_service.h` | mDNS/Bonjour hostname advertisement |
 | `main/http_server.h` | Dual HTTP servers, MJPEG streaming, REST endpoints |
 | `main/web_ui.h` | Embedded HTML/CSS/JS web interface |
 
