@@ -116,8 +116,8 @@ static const char INDEX_HTML[] = R"rawliteral(
         let lastTime = Date.now();
 
         function startStream() {
-            // Use the current host for the stream URL
-            const streamUrl = '/stream?' + Date.now();
+            // Stream is on port 81 (separate server)
+            const streamUrl = 'http://' + window.location.hostname + ':81/stream?' + Date.now();
             streamImg.src = streamUrl;
             statusDiv.textContent = 'Streaming...';
             statusDiv.className = 'status connected';
