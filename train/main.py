@@ -22,10 +22,11 @@ print("RDY")
 
 while True:
     # Check for incoming commands via stdin (from BLE GATT)
+    # Use stdin.buffer.read() for raw bytes from BLE
     while keyboard.poll(0):
-        char = stdin.read(1)
-        if char:
-            cmd = char.upper()
+        byte = stdin.buffer.read(1)
+        if byte:
+            cmd = chr(byte[0]).upper()
             if cmd == "F":
                 train_motor.dc(30)
                 hub.light.on(Color.GREEN)
@@ -38,6 +39,6 @@ while True:
                 train_motor.dc(0)
                 hub.light.on(Color.YELLOW)
                 print("STP")
-            # Ignore newlines and other characters
+            # Ignore other characters
 
     wait(50)

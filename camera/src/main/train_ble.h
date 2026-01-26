@@ -129,11 +129,11 @@ static int train_send_stdin(const char *data) {
         len = sizeof(buf) - 1;
     }
 
-    buf[0] = 0x05;  // stdin command (PBIO_PYBRICKS_COMMAND_WRITE_STDIN)
+    buf[0] = 0x06;  // PBIO_PYBRICKS_COMMAND_WRITE_STDIN (0x05 is update mode!)
     memcpy(&buf[1], data, len);
     // No line ending needed - program reads single chars with stdin.read(1)
 
-    ESP_LOGI(BLE_TAG, "Sending stdin (%d bytes): [0x05] + '%s'", len + 1, data);
+    ESP_LOGI(BLE_TAG, "Sending stdin (%d bytes): [0x06] + '%s'", len + 1, data);
 
     // Use write-with-response for reliability with WiFi/BLE coexistence
     return train_write_wait(buf, len + 1);
