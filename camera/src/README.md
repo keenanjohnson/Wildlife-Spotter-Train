@@ -1,6 +1,6 @@
 # ESP32-S3 Camera Firmware
 
-MJPEG streaming server for the Wildlife Spotter Train camera module.
+MJPEG streaming server and BLE train controller for the Wildlife Spotter Train camera module.
 
 ## Architecture
 
@@ -16,21 +16,22 @@ MJPEG streaming server for the Wildlife Spotter Train camera module.
 │  │  │   - Web UI (/)        │  │  │  │ - MJPEG stream      │  │ │
 │  │  │   - Capture (/capture)│  │  │  │ - Continuous loop   │  │ │
 │  │  │   - Status (/status)  │  │  │  │                     │  │ │
-│  │  └───────────────────────┘  │  │  └──────────┬──────────┘  │ │
+│  │  │   - Train (/train)    │  │  │  └──────────┬──────────┘  │ │
+│  │  └───────────────────────┘  │  │             │             │ │
 │  │                             │  │             │             │ │
-│  │  ┌───────────────────────┐  │  │             │             │ │
-│  │  │   WiFi + System       │  │  │  ┌──────────▼──────────┐  │ │
-│  │  └───────────────────────┘  │  │  │   Camera Driver     │  │ │
-│  │                             │  │  │   (JPEG capture)    │  │ │
-│  └─────────────────────────────┘  │  └─────────────────────┘  │ │
-│                                   └───────────────────────────┘ │
-└───────────────────────────────────────────────────┬─────────────┘
-                                                    │
-                                                    ▼ WiFi
-                                          ┌─────────────────┐
-                                          │     Browser     │
-                                          │    (Web UI)     │
-                                          └─────────────────┘
+│  │  ┌───────────────────────┐  │  │  ┌──────────▼──────────┐  │ │
+│  │  │   WiFi + NimBLE       │  │  │  │   Camera Driver     │  │ │
+│  │  └───────────────────────┘  │  │  │   (JPEG capture)    │  │ │
+│  │             │               │  │  └─────────────────────┘  │ │
+│  └─────────────┼───────────────┘  └───────────────────────────┘ │
+│                │                                                │
+└────────────────┼────────────────────────────────────────────────┘
+                 │ BLE                          │ WiFi
+                 ▼                              ▼
+       ┌─────────────────┐            ┌─────────────────┐
+       │  LEGO City Hub  │            │     Browser     │
+       │   (Pybricks)    │            │    (Web UI)     │
+       └─────────────────┘            └─────────────────┘
 ```
 
 ### Dual-Core Design
@@ -63,11 +64,35 @@ The firmware runs two HTTP servers to prevent the streaming handler from blockin
 
 | Endpoint | Port | Description |
 |----------|------|-------------|
-| `/` | 80 | Web UI with embedded video player and controls |
+| `/` | 80 | Web UI with embedded video player and train controls |
 | `/capture` | 80 | Single JPEG snapshot |
 | `/status` | 80 | JSON camera status and settings |
+| `/train` | 80 | Train control API (see below) |
 | `/stream` | 81 | MJPEG video stream |
 | `/` | 81 | MJPEG video stream (alias) |
+
+### Train Control API
+
+Control the LEGO train via the `/train` endpoint:
+
+```bash
+# Move forward
+curl "http://train.local/train?action=forward"
+
+# Move backward
+curl "http://train.local/train?action=backward"
+
+# Stop
+curl "http://train.local/train?action=stop"
+
+# Check status
+curl "http://train.local/train?action=status"
+```
+
+Response format:
+```json
+{"status": "ok", "action": "forward", "train_state": "ready"}
+```
 
 ### Example Usage
 
@@ -98,6 +123,7 @@ open http://train.local:81/stream
 | `main/mdns_service.h` | mDNS/Bonjour hostname advertisement |
 | `main/http_server.h` | Dual HTTP servers, MJPEG streaming, REST endpoints |
 | `main/web_ui.h` | Embedded HTML/CSS/JS web interface |
+| `main/train_ble.h` | NimBLE GATT client for Pybricks hub communication |
 
 ## Camera Configuration
 
@@ -168,6 +194,54 @@ OV3660 Camera Module:
   PCLK  = GPIO 13
   LED   = GPIO 21
 ```
+
+## BLE Train Control
+
+The ESP32-S3 acts as a BLE Central (GATT client) to control the LEGO City Hub running Pybricks firmware. WiFi and BLE run concurrently using the ESP32's coexistence feature.
+
+### How It Works
+
+1. **Scan**: ESP32 scans for devices advertising the Pybricks Service UUID
+2. **Connect**: Connects to the hub and discovers the Pybricks characteristic
+3. **Subscribe**: Enables notifications to receive stdout from the hub
+4. **Start Program**: Sends command `0x01` to start the pre-installed user program
+5. **Wait for Ready**: Waits for the program to print "RDY" via stdout
+6. **Send Commands**: Writes stdin commands (`0x06` + data) to control the motor
+
+### Configuration (sdkconfig.defaults)
+
+```ini
+# Bluetooth / NimBLE
+CONFIG_BT_ENABLED=y
+CONFIG_BT_NIMBLE_ENABLED=y
+CONFIG_BT_NIMBLE_ROLE_CENTRAL=y
+CONFIG_BT_NIMBLE_ATT_PREFERRED_MTU=158
+
+# WiFi/BLE Coexistence
+CONFIG_ESP_COEX_SW_COEXIST_ENABLE=y
+CONFIG_ESP_COEX_POWER_MANAGEMENT=y
+```
+
+### Connection States
+
+| State | Description |
+|-------|-------------|
+| `disconnected` | Not connected, will scan |
+| `scanning` | Scanning for Pybricks hub |
+| `connecting` | Found hub, connecting |
+| `discovering` | Connected, discovering services |
+| `initializing` | Starting user program |
+| `ready` | Program running, accepting commands |
+
+### Prerequisites
+
+Before the ESP32 can control the train:
+
+1. Flash Pybricks firmware to the LEGO City Hub
+2. Install the train program: `pybricksdev run ble train/main.py`
+3. The program stays installed after Ctrl+C
+
+See [train/README.md](../../../train/README.md) for the Pybricks BLE protocol details.
 
 ## Credits
 

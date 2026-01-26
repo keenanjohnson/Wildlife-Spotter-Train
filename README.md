@@ -30,13 +30,40 @@ I have recently been doing much ecology and as an embedded systems engineer, I t
 
 Additionally, I had seen the excellent [Pybricks](https://pybricks.com/) project and realized that I could also make a device via Bluetooth control and software GUI that would not only stream video but also control the driving of the train.
 
+## System Architecture
+
+```
+                                    ┌─────────────────────┐
+                                    │      Browser        │
+                                    │    train.local      │
+                                    └──────────┬──────────┘
+                                               │ WiFi (HTTP)
+                                               │ - Web UI
+                                               │ - MJPEG stream
+                                               │ - Train controls
+                                               ▼
+┌─────────────────────┐  BLE GATT  ┌─────────────────────┐
+│   LEGO City Hub     │◄───────────│      ESP32-S3       │
+│    (Pybricks)       │   stdin    │   Camera Module     │
+│                     │  commands  │                     │
+│  - Motor control    │            │  - OV2640 camera    │
+│  - LED feedback     │            │  - WiFi AP/STA      │
+│  - main.py program  │            │  - NimBLE central   │
+└─────────────────────┘            └─────────────────────┘
+```
+
+The ESP32-S3 serves as the central hub:
+- **WiFi**: Hosts a web interface for video streaming and train controls
+- **BLE**: Connects to the LEGO hub as a GATT client to send motor commands
+- **Camera**: Captures JPEG frames and streams via MJPEG over HTTP
+
 ## Project Structure
 
 | Directory | Description |
 |-----------|-------------|
-| [camera/src/](camera/src/) | ESP-IDF firmware for the ESP32-S3 camera module. Streams JPEG frames over UDP via WiFi. |
+| [camera/src/](camera/src/) | ESP-IDF firmware for the ESP32-S3 camera module. Streams video and controls train via BLE. |
 | [camera/cad/](camera/cad/) | 3D printable enclosure designs for the camera module. |
-| [train/](train/) | Pybricks Python code that runs on the LEGO City hub to control the train motors. |
+| [train/](train/) | Pybricks Python code that runs on the LEGO City hub to receive BLE commands. |
 | [desktop/](desktop/) | Python test application for receiving and displaying UDP video frames. |
 
 ## Building
